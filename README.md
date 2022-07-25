@@ -33,4 +33,6 @@ into this for all languages:
 ```
 
 # Create executable
+Run
 `pyinstaller -F .\MC_Language_Formatter.py --windowe --icon=test.ico`
+or [download Windows executable here](/../../releases/latest)
