@@ -1,0 +1,1 @@
+pyinstaller -F .\MC_Language_Formatter.py --windowe --icon=test.ico
