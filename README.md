@@ -3,7 +3,7 @@ Helpful tool to change the format (e.g. color) of your resourcepack text for all
 
 Example Resourcepack: [Dark Theme Resoucepack](https://www.planetminecraft.com/texture-pack/dark-theme-4253588/)
 
-Basically it turn this
+Basically it turns this
 ```
 #  Comment style 1: formatlist template
 // Comment style 2: formatting codes can be found here https://minecraft.gamepedia.com/Formatting_codes
