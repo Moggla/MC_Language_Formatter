@@ -29,6 +29,7 @@ jar_version_list = [name for name in os.listdir(jar_version_dir) if os.path.isdi
 ################################### Functions ###################################
 
 def extract_en_us_json():
+    global json_version
     json_version = opt_json.get()
 
     if not os.path.exists(output_dir):
@@ -45,6 +46,8 @@ def extract_en_us_json():
     print('Extracted to /' + output_folder + '/' + en_us_json_dir)
 
 def start():
+    global json_version
+    global jar_version
     format_list = browse_box.get(1.0,"end-1c")
     json_version = opt_json.get()
     jar_version = opt_jar.get()
