@@ -23,13 +23,24 @@ jar_dir = jar_version_dir + jar_version + '/' + jar_version + '.jar'
 en_us_json_dir = 'assets/minecraft/lang/en_us.json'
 output_dir = current_directory + '/' + output_folder
 
-json_version_list = [name for name in os.listdir(json_version_dir) if os.path.isfile(json_version_dir + name)]
+json_version_list = [name.replace('.json','') for name in os.listdir(json_version_dir) if os.path.isfile(json_version_dir + name)]
 jar_version_list = [name for name in os.listdir(jar_version_dir) if os.path.isdir(jar_version_dir + name)]
 
 ################################### Functions ###################################
 
 def extract_en_us_json():
-    json_version = opt_json.get()
+    # TODO: do it better
+    jar_version = opt_jar.get()
+
+    home = os.environ['HOMEPATH']
+    current_directory = os.getcwd()
+    output_folder = 'output'
+    minecraft_loaction = home + '/AppData/Roaming/.minecraft/'
+    jar_version_dir = minecraft_loaction + 'versions/'
+    jar_dir = jar_version_dir + jar_version + '/' + jar_version + '.jar'
+    en_us_json_dir = 'assets/minecraft/lang/en_us.json'
+    output_dir = current_directory + '/' + output_folder
+    # ---
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -45,9 +56,24 @@ def extract_en_us_json():
     print('Extracted to /' + output_folder + '/' + en_us_json_dir)
 
 def start():
+    # TODO: do it better
     format_list = browse_box.get(1.0,"end-1c")
     json_version = opt_json.get()
     jar_version = opt_jar.get()
+    global end_line
+
+    home = os.environ['HOMEPATH']
+    current_directory = os.getcwd()
+    output_folder = 'output'
+    minecraft_loaction = home + '/AppData/Roaming/.minecraft/'
+    hash_location = minecraft_loaction + 'assets/objects'
+    json_version_dir = minecraft_loaction + 'assets/indexes/'
+    json_dir = json_version_dir + json_version + '.json'
+    jar_version_dir = minecraft_loaction + 'versions/'
+    jar_dir = jar_version_dir + jar_version + '/' + jar_version + '.jar'
+    en_us_json_dir = 'assets/minecraft/lang/en_us.json'
+    output_dir = current_directory + '/' + output_folder
+    # ---
     
     print('Gathering hash directories...')
 
