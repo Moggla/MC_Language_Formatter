@@ -1,14 +1,14 @@
 #  Comment style 1: formatlist template
 // Comment style 2: formatting codes can be found here https://minecraft.gamepedia.com/Formatting_codes
 
-"advMode.mode.auto":                    "Replace"
-"advMode.mode.autoexec.bat":            "§fNew         Name"
+"advMode.mode.auto":                    "-Replace-"
+"advMode.mode.autoexec.bat":            "§fNew Name"
 
-"advMode.mode.redstone":                "Add In Front 
+"advMode.mode.redstone":                "Add In Front -> 
 "advMode.mode.redstoneTriggered":       "§4
 
-"advMode.mode.sequence":                "Add In Front §* Add At Back
+"advMode.mode.sequence":                "Add In Front -> §* <- Add At Back
 "advMode.mode.unconditional":           "---§*---
 
-"entity.minecraft.villager":            "§* Add At Back
+"entity.minecraft.villager":            "§* <- Add At Back
 "entity.minecraft.villager.armorer":    "§*---

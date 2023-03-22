@@ -5,90 +5,78 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfile
 
-
+# Global var
 format_list = 'formatlist.txt'
 json_version = '1.16'
 jar_version = '1.16.2'
-end_line = '\xC2\xA7r",'   # \xC2\xA7 = §
+end_line = '§r",'   # \xC2\xA7 = §
 
 home = os.environ['HOMEPATH']
 current_directory = os.getcwd()
 output_folder = 'output'
-minecraft_loaction = home + '/AppData/Roaming/.minecraft/'
-hash_location = minecraft_loaction + 'assets/objects'
-json_version_dir = minecraft_loaction + 'assets/indexes/'
-json_dir = json_version_dir + json_version + '.json'
-jar_version_dir = minecraft_loaction + 'versions/'
-jar_dir = jar_version_dir + jar_version + '/' + jar_version + '.jar'
 en_us_json_dir = 'assets/minecraft/lang/en_us.json'
-output_dir = current_directory + '/' + output_folder
+minecraft_loaction =    lambda: home + '/AppData/Roaming/.minecraft/'
+hash_location =         lambda: minecraft_loaction() + 'assets/objects'
+json_version_dir =      lambda: minecraft_loaction() + 'assets/indexes/'
+json_dir =              lambda: json_version_dir() + json_version + '.json'
+jar_version_dir =       lambda: minecraft_loaction() + 'versions/'
+jar_dir =               lambda: jar_version_dir() + jar_version + '/' + jar_version + '.jar'
+output_dir =            lambda: current_directory + '/' + output_folder
 
-json_version_list = [name.replace('.json','') for name in os.listdir(json_version_dir) if os.path.isfile(json_version_dir + name)]
-jar_version_list = [name for name in os.listdir(jar_version_dir) if os.path.isdir(jar_version_dir + name)]
+json_version_list = [name.replace('.json','') for name in os.listdir(json_version_dir()) if os.path.isfile(json_version_dir() + name)]
+jar_version_list = [name for name in os.listdir(jar_version_dir()) if os.path.isdir(jar_version_dir() + name)]
 
 ################################### Functions ###################################
 
 def extract_en_us_json():
-    # TODO: do it better
+    global jar_version
+    global home
+    global current_directory
+    global output_folder
+
     jar_version = opt_jar.get()
 
-    home = os.environ['HOMEPATH']
-    current_directory = os.getcwd()
-    output_folder = 'output'
-    minecraft_loaction = home + '/AppData/Roaming/.minecraft/'
-    jar_version_dir = minecraft_loaction + 'versions/'
-    jar_dir = jar_version_dir + jar_version + '/' + jar_version + '.jar'
-    en_us_json_dir = 'assets/minecraft/lang/en_us.json'
-    output_dir = current_directory + '/' + output_folder
-    # ---
+    if not os.path.exists(output_dir()):
+        os.makedirs(output_dir())
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    with zipfile.ZipFile(jar_dir, 'r') as zip_ref:
-        zip_ref.extract(en_us_json_dir, output_dir + '/')
+    with zipfile.ZipFile(jar_dir(), 'r') as zip_ref:
+        zip_ref.extract(en_us_json_dir, output_dir() + '/')
     
-    if os.path.exists(output_dir + '/en_us.json'):
-        os.remove(output_dir + '/en_us.json')
-    os.rename(output_dir + '/' + en_us_json_dir, output_dir + '/en_us.json')
-    os.removedirs(output_dir + '/' + en_us_json_dir[:-10])
+    if os.path.exists(output_dir() + '/en_us.json'):
+        os.remove(output_dir() + '/en_us.json')
+    os.rename(output_dir() + '/' + en_us_json_dir, output_dir() + '/en_us.json')
+    os.removedirs(output_dir() + '/' + en_us_json_dir[:-10])
 
     print('Extracted to /' + output_folder + '/' + en_us_json_dir)
 
 def start():
-    # TODO: do it better
+    global format_list
+    global json_version
+    global jar_version
+    global end_line
+
+    global home
+    global current_directory
+    global output_folder
+
     format_list = browse_box.get(1.0,"end-1c")
     json_version = opt_json.get()
     jar_version = opt_jar.get()
-    global end_line
-
-    home = os.environ['HOMEPATH']
-    current_directory = os.getcwd()
-    output_folder = 'output'
-    minecraft_loaction = home + '/AppData/Roaming/.minecraft/'
-    hash_location = minecraft_loaction + 'assets/objects'
-    json_version_dir = minecraft_loaction + 'assets/indexes/'
-    json_dir = json_version_dir + json_version + '.json'
-    jar_version_dir = minecraft_loaction + 'versions/'
-    jar_dir = jar_version_dir + jar_version + '/' + jar_version + '.jar'
-    en_us_json_dir = 'assets/minecraft/lang/en_us.json'
-    output_dir = current_directory + '/' + output_folder
-    # ---
     
     print('Gathering hash directories...')
 
     # special case for en_us.json
     lang_code = ['en_us.json']
-    lang_dir = [output_dir + '/' + en_us_json_dir]
+    lang_dir = [output_dir() + '/' + en_us_json_dir]
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    if not os.path.exists(output_dir()):
+        os.makedirs(output_dir())
 
-    with zipfile.ZipFile(jar_dir, 'r') as zip_ref:
-        zip_ref.extract(en_us_json_dir, output_dir + '/')
+    with zipfile.ZipFile(jar_dir(), 'r') as zip_ref:
+        zip_ref.extract(en_us_json_dir, output_dir() + '/')
 
     # all other languages
-    with open(json_dir, 'r') as f:
+    with open(json_dir(), 'r', encoding='utf8') as f:
         json_contents = f.read()
     json_contents_splited = json_contents.split(',')
 
@@ -98,13 +86,13 @@ def start():
             line = line.partition('": {"hash": "')
             lang_code.append(line[0])
             lang_hash = line[2][:-1]
-            lang_dir.append(hash_location + '/' + lang_hash[0:2] + '/' + lang_hash)
+            lang_dir.append(hash_location() + '/' + lang_hash[0:2] + '/' + lang_hash)
 
 
     print('Formatting language files...')
 
     # generate list to help find all lines that have to get formated
-    with open(format_list, 'r') as f:
+    with open(format_list, 'r', encoding='utf8') as f:
         format_list_contents = f.read()
     format_list_contents_splited = format_list_contents.split('\n')
 
@@ -123,7 +111,7 @@ def start():
 
         print('Formatting ' + lang_code[lang_loop])
 
-        with open(lang_dir[lang_loop], 'r') as f:
+        with open(lang_dir[lang_loop], 'r', encoding='utf8') as f:
             lang_dir_contents = f.read()
         lang_dir_contents_splited = lang_dir_contents.split('\n')
 
@@ -144,11 +132,11 @@ def start():
         apllied_format[-1] = apllied_format[-1][:-1]
         apllied_format.append('}')
 
-        with open(output_folder + '/' + lang_code[lang_loop], 'w') as f:
+        with open(output_folder + '/' + lang_code[lang_loop], 'w', encoding='utf8') as f:
             f.write('\n'.join(apllied_format))
 
-    os.remove(output_dir + '/' + en_us_json_dir)
-    os.removedirs(output_dir + '/' + en_us_json_dir[:-10])
+    os.remove(output_dir() + '/' + en_us_json_dir)
+    os.removedirs(output_dir() + '/' + en_us_json_dir[:-10])
 
     print('Done! Files saved to /' + output_folder + '/')
 
@@ -180,20 +168,20 @@ text.grid(columnspan=3, column=0, row=0, padx=pad_grid, pady=pad_grid)
 
 text = ttk.Label(innerFrame, text="Select version for en_us:")
 text.grid(column=0, row=1, padx=pad_grid, pady=pad_grid)
-opt_json = ttk.Combobox(innerFrame, value=json_version_list, state='readonly')
-opt_json.current(0)
-opt_json.grid(column=1, row=1, padx=pad_grid, pady=pad_grid, sticky="news")
+opt_jar = ttk.Combobox(innerFrame, value=jar_version_list, state='readonly')
+opt_jar.current(0)
+opt_jar.grid(column=1, row=1, padx=pad_grid, pady=pad_grid, sticky="news")
 extract_text = tk.StringVar()
-extract_btn = ttk.Button(innerFrame, textvariable=extract_text, command=lambda:extract_en_us_json())
+extract_btn = ttk.Button(innerFrame, textvariable=extract_text, command=extract_en_us_json)
 extract_text.set("Extract")
 extract_btn.grid(column=2, row=1, padx=pad_grid, pady=pad_grid)
 
 
 text = ttk.Label(innerFrame, text="Select version for all other languages:")
 text.grid(column=0, row=2, padx=pad_grid, pady=pad_grid)
-opt_jar = ttk.Combobox(innerFrame, value=jar_version_list, state='readonly')
-opt_jar.current(0)
-opt_jar.grid(column=1, row=2, padx=pad_grid, pady=pad_grid, sticky="news")
+opt_json = ttk.Combobox(innerFrame, value=json_version_list, state='readonly')
+opt_json.current(0)
+opt_json.grid(column=1, row=2, padx=pad_grid, pady=pad_grid, sticky="news")
 
 
 text = ttk.Label(innerFrame, text="Format list:")
@@ -214,13 +202,13 @@ def browse_format_list():
         browse_box.delete('1.0',"end")
         browse_box.insert(1.0, file.name)
 browse_text = tk.StringVar()
-browse_btn = ttk.Button(innerFrame, width=3, textvariable=browse_text, command=lambda:browse_format_list())
+browse_btn = ttk.Button(innerFrame, width=3, textvariable=browse_text, command=browse_format_list)
 browse_text.set("...")
 browse_btn.grid(column=1, row=3, padx=pad_grid, pady=pad_grid, sticky='E')
 
 
 start_text = tk.StringVar()
-start_btn = ttk.Button(innerFrame, textvariable=start_text, command=lambda:start())
+start_btn = ttk.Button(innerFrame, textvariable=start_text, command=start)
 start_text.set("Start Formatting all Languages")
 start_btn.grid(column=1, row=4, padx=pad_grid, pady=pad_grid)
 
