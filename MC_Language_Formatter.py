@@ -103,7 +103,7 @@ def start():
             line = line.partition('": ')
             if (line[0][0] != '/') & (line[0][0] != '#'):   # ignore comments
                 find_to_format.append(line[0] + line[1])
-                format.append(line[2].partition('\xC2\xA7*'))
+                format.append(line[2].partition('§*'))      #\xC2\xA7 = §
 
 
     # formatting language files
