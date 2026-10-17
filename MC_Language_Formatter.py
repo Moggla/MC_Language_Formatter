@@ -2,6 +2,7 @@ import json
 import zipfile
 import os
 import sys
+from pathlib import Path
 import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfile
@@ -12,23 +13,19 @@ json_version = '1.16'
 jar_version = '1.16.2'
 reset = '§r'   # \xC2\xA7 = §
 
-appdata = os.environ.get('APPDATA', os.path.expanduser('~/AppData/Roaming'))
-current_directory = os.getcwd()
+appdata = Path(os.environ.get('APPDATA', Path.home() / 'AppData' / 'Roaming'))
 output_folder = 'output'
-en_us_json_dir = 'assets/minecraft/lang/en_us.json'
-minecraft_loaction =    lambda: appdata + '/.minecraft/'
-hash_location =         lambda: minecraft_loaction() + 'assets/objects'
-json_version_dir =      lambda: minecraft_loaction() + 'assets/indexes/'
-json_dir =              lambda: json_version_dir() + json_version + '.json'
-jar_version_dir =       lambda: minecraft_loaction() + 'versions/'
-jar_dir =               lambda: jar_version_dir() + jar_version + '/' + jar_version + '.jar'
-output_dir =            lambda: current_directory + '/' + output_folder
+en_us_json_dir = 'assets/minecraft/lang/en_us.json'    # path inside the jar
+minecraft_loaction =    appdata / '.minecraft'
+hash_location =         minecraft_loaction / 'assets' / 'objects'
+json_version_dir =      minecraft_loaction / 'assets' / 'indexes'
+jar_version_dir =       minecraft_loaction / 'versions'
+output_dir =            Path.cwd() / output_folder
+json_dir =              lambda: json_version_dir / (json_version + '.json')
+jar_dir =               lambda: jar_version_dir / jar_version / (jar_version + '.jar')
 
-def list_dir(path):
-    return os.listdir(path) if os.path.isdir(path) else []
-
-json_version_list = [name.replace('.json','') for name in list_dir(json_version_dir()) if os.path.isfile(json_version_dir() + name)]
-jar_version_list = [name for name in list_dir(jar_version_dir()) if os.path.isdir(jar_version_dir() + name)]
+json_version_list = [p.stem for p in json_version_dir.glob('*.json') if p.is_file()]
+jar_version_list = [p.name for p in jar_version_dir.glob('*') if p.is_dir()]
 
 ################################### Functions ###################################
 
@@ -37,13 +34,10 @@ def extract_en_us_json():
 
     jar_version = opt_jar.get()
 
-    if not os.path.exists(output_dir()):
-        os.makedirs(output_dir())
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     with zipfile.ZipFile(jar_dir(), 'r') as zip_ref:
-        en_us = zip_ref.read(en_us_json_dir)
-    with open(output_dir() + '/en_us.json', 'wb') as f:
-        f.write(en_us)
+        (output_dir / 'en_us.json').write_bytes(zip_ref.read(en_us_json_dir))
 
     print('Extracted to /' + output_folder + '/en_us.json')
 
@@ -99,8 +93,7 @@ def start():
 
     rules = read_format_list(format_list)
 
-    if not os.path.exists(output_dir()):
-        os.makedirs(output_dir())
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     for lang_code in ['en_us.json'] + list(lang_hashes):
 
@@ -110,7 +103,7 @@ def start():
             lang = languages[lang_code]
         else:
             lang_hash = lang_hashes[lang_code]
-            with open(hash_location() + '/' + lang_hash[0:2] + '/' + lang_hash, 'r', encoding='utf8') as f:
+            with open(hash_location / lang_hash[0:2] / lang_hash, 'r', encoding='utf8') as f:
                 lang = json.load(f)
 
         # apply format to all languages from format list
@@ -120,7 +113,7 @@ def start():
                 text = front if replace else front + lang[key] + back
                 applied_format[key] = text + reset
 
-        with open(output_dir() + '/' + lang_code, 'w', encoding='utf8') as f:
+        with open(output_dir / lang_code, 'w', encoding='utf8') as f:
             json.dump(applied_format, f, ensure_ascii=False, indent=2)
 
     print('Done! Files saved to /' + output_folder + '/')
@@ -174,7 +167,7 @@ opt_json.grid(column=1, row=2, padx=pad_grid, pady=pad_grid, sticky="news")
 text = ttk.Label(innerFrame, text="Format list:")
 text.grid(column=0, row=3, padx=pad_grid, pady=pad_grid)
 browse_box = tk.Text(innerFrame, height=1, width=50, padx=5, pady=5, wrap='none', font=('TkDefaultFont', 10))
-browse_box.insert(1.0, current_directory + '\\' + format_list)
+browse_box.insert(1.0, str(Path.cwd() / format_list))
 browse_box.grid(column=1, row=3, padx=pad_grid, pady=pad_grid, sticky="news")
 file_var = tk.StringVar(innerFrame)
 file_var.set([])
@@ -214,7 +207,7 @@ sys.stderr.write = redirector
 if not jar_version_list or not json_version_list:
     extract_btn.state(['disabled'])
     start_btn.state(['disabled'])
-    print('No Minecraft installation found in ' + minecraft_loaction() + '\n'
+    print('No Minecraft installation found in ' + str(minecraft_loaction) + '\n'
           'Start Minecraft Java Edition at least once, then restart this program.')
 
 
