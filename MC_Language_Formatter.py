@@ -9,8 +9,6 @@ from tkinter.filedialog import askopenfile
 
 # Global var
 format_list = 'formatlist.txt'
-json_version = '1.16'
-jar_version = '1.16.2'
 reset = '§r'   # \xC2\xA7 = §
 
 appdata = Path(os.environ.get('APPDATA', Path.home() / 'AppData' / 'Roaming'))
@@ -21,8 +19,8 @@ hash_location =         minecraft_loaction / 'assets' / 'objects'
 json_version_dir =      minecraft_loaction / 'assets' / 'indexes'
 jar_version_dir =       minecraft_loaction / 'versions'
 output_dir =            Path.cwd() / output_folder
-json_dir =              lambda: json_version_dir / (json_version + '.json')
-jar_dir =               lambda: jar_version_dir / jar_version / (jar_version + '.jar')
+json_dir =              lambda json_version: json_version_dir / (json_version + '.json')
+jar_dir =               lambda jar_version: jar_version_dir / jar_version / (jar_version + '.jar')
 
 json_version_list = [p.stem for p in json_version_dir.glob('*.json') if p.is_file()]
 jar_version_list = [p.name for p in jar_version_dir.glob('*') if p.is_dir()]
@@ -30,13 +28,11 @@ jar_version_list = [p.name for p in jar_version_dir.glob('*') if p.is_dir()]
 ################################### Functions ###################################
 
 def extract_en_us_json():
-    global jar_version
-
     jar_version = opt_jar.get()
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    with zipfile.ZipFile(jar_dir(), 'r') as zip_ref:
+    with zipfile.ZipFile(jar_dir(jar_version), 'r') as zip_ref:
         (output_dir / 'en_us.json').write_bytes(zip_ref.read(en_us_json_dir))
 
     print('Extracted to /' + output_folder + '/en_us.json')
@@ -69,29 +65,25 @@ def read_format_list(path):
     return rules
 
 def start():
-    global format_list
-    global json_version
-    global jar_version
-
-    format_list = browse_box.get(1.0,"end-1c")
+    format_list_path = browse_box.get(1.0,"end-1c")
     json_version = opt_json.get()
     jar_version = opt_jar.get()
 
     print('Gathering hash directories...')
 
     # special case for en_us.json, it is only stored in the jar
-    with zipfile.ZipFile(jar_dir(), 'r') as zip_ref:
+    with zipfile.ZipFile(jar_dir(jar_version), 'r') as zip_ref:
         languages = {'en_us.json': json.loads(zip_ref.read(en_us_json_dir).decode('utf8'))}
 
     # all other languages
-    with open(json_dir(), 'r', encoding='utf8') as f:
+    with open(json_dir(json_version), 'r', encoding='utf8') as f:
         objects = json.load(f)['objects']
     lang_hashes = {name.partition('minecraft/lang/')[2]: entry['hash']
                    for name, entry in objects.items() if name.startswith('minecraft/lang/')}
 
     print('Formatting language files...')
 
-    rules = read_format_list(format_list)
+    rules = read_format_list(format_list_path)
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
