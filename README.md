@@ -1,7 +1,7 @@
 # What it does
 Helpful tool to change the format (e.g. color) of your resourcepack text for all languages.
 
-Example Resourcepack: [Dark Theme Resoucepack](https://www.planetminecraft.com/texture-pack/dark-theme-4253588/)
+Example Resourcepack: [Dark Theme Resourcepack](https://www.planetminecraft.com/texture-pack/dark-theme-4253588/)
 
 Basically it turns this
 ```
@@ -40,4 +40,4 @@ for all languages.
 This tool will automatically extract the language files from your local Minecraft Java edition. Then it will change these language files based on your format list, which you provide, so you can use it for your resourcepack.
 
 # Create executable
-Run `pyinstaller -F .\MC_Language_Formatter.py --windowe --icon=test.ico` or [download Windows executable here](/../../releases/latest)
+Run `pyinstaller -F .\MC_Language_Formatter.py --windowed --icon=test.ico` or [download Windows executable here](/../../releases/latest)
