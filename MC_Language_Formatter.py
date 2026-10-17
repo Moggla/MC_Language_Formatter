@@ -14,10 +14,10 @@ reset = '§r'   # \xC2\xA7 = §
 appdata = Path(os.environ.get('APPDATA', Path.home() / 'AppData' / 'Roaming'))
 output_folder = 'output'
 en_us_json_dir = 'assets/minecraft/lang/en_us.json'    # path inside the jar
-minecraft_loaction =    appdata / '.minecraft'
-hash_location =         minecraft_loaction / 'assets' / 'objects'
-json_version_dir =      minecraft_loaction / 'assets' / 'indexes'
-jar_version_dir =       minecraft_loaction / 'versions'
+minecraft_location =    appdata / '.minecraft'
+hash_location =         minecraft_location / 'assets' / 'objects'
+json_version_dir =      minecraft_location / 'assets' / 'indexes'
+jar_version_dir =       minecraft_location / 'versions'
 output_dir =            Path.cwd() / output_folder
 json_dir =              lambda json_version: json_version_dir / (json_version + '.json')
 jar_dir =               lambda jar_version: jar_version_dir / jar_version / (jar_version + '.jar')
@@ -199,7 +199,7 @@ sys.stderr.write = redirector
 if not jar_version_list or not json_version_list:
     extract_btn.state(['disabled'])
     start_btn.state(['disabled'])
-    print('No Minecraft installation found in ' + str(minecraft_loaction) + '\n'
+    print('No Minecraft installation found in ' + str(minecraft_location) + '\n'
           'Start Minecraft Java Edition at least once, then restart this program.')
 
 
