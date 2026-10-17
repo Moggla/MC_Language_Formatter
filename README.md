@@ -40,4 +40,8 @@ for all languages.
 This tool will automatically extract the language files from your local Minecraft Java edition. Then it will change these language files based on your format list, which you provide, so you can use it for your resourcepack.
 
 # Create executable
-Run `pyinstaller -F .\MC_Language_Formatter.py --windowed --icon=test.ico` or [download Windows executable here](/../../releases/latest)
+[Download the Windows executable here](/../../releases/latest) and put `formatlist.txt` next to it.
+
+To build it yourself, run `pyinstaller --onefile --windowed MC_Language_Formatter.py`.
+
+Pushing a tag like `v1.1.0` builds the executable with GitHub Actions and publishes it together with `formatlist.txt` as a release.
