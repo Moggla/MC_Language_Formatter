@@ -125,7 +125,7 @@ def start():
                 if (format[i][0][-1] == '"') & (format[i][0].count('"') > 1):   # replace format
                     apllied_format.append( line[0] + line[1] + format[i][0][:-1] + end_line )
                 else:                                                           # add format
-                    apllied_format.append( line[0] + line[1] + format[i][0] + line[2][1:-2] + format[i][2] + end_line )
+                    apllied_format.append( line[0] + line[1] + format[i][0] + line[2].rstrip().rstrip(',')[1:-1] + format[i][2] + end_line )
         # add { } and remove last ,
         apllied_format[-1] = apllied_format[-1][:-1]
         apllied_format.append('}')
