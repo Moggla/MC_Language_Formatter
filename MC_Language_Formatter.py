@@ -23,8 +23,11 @@ jar_version_dir =       lambda: minecraft_loaction() + 'versions/'
 jar_dir =               lambda: jar_version_dir() + jar_version + '/' + jar_version + '.jar'
 output_dir =            lambda: current_directory + '/' + output_folder
 
-json_version_list = [name.replace('.json','') for name in os.listdir(json_version_dir()) if os.path.isfile(json_version_dir() + name)]
-jar_version_list = [name for name in os.listdir(jar_version_dir()) if os.path.isdir(jar_version_dir() + name)]
+def list_dir(path):
+    return os.listdir(path) if os.path.isdir(path) else []
+
+json_version_list = [name.replace('.json','') for name in list_dir(json_version_dir()) if os.path.isfile(json_version_dir() + name)]
+jar_version_list = [name for name in list_dir(jar_version_dir()) if os.path.isdir(jar_version_dir() + name)]
 
 ################################### Functions ###################################
 
@@ -167,7 +170,8 @@ text.grid(columnspan=3, column=0, row=0, padx=pad_grid, pady=pad_grid)
 text = ttk.Label(innerFrame, text="Select version for en_us:")
 text.grid(column=0, row=1, padx=pad_grid, pady=pad_grid)
 opt_jar = ttk.Combobox(innerFrame, value=jar_version_list, state='readonly')
-opt_jar.current(0)
+if jar_version_list:
+    opt_jar.current(0)
 opt_jar.grid(column=1, row=1, padx=pad_grid, pady=pad_grid, sticky="news")
 extract_text = tk.StringVar()
 extract_btn = ttk.Button(innerFrame, textvariable=extract_text, command=extract_en_us_json)
@@ -178,7 +182,8 @@ extract_btn.grid(column=2, row=1, padx=pad_grid, pady=pad_grid)
 text = ttk.Label(innerFrame, text="Select version for all other languages:")
 text.grid(column=0, row=2, padx=pad_grid, pady=pad_grid)
 opt_json = ttk.Combobox(innerFrame, value=json_version_list, state='readonly')
-opt_json.current(0)
+if json_version_list:
+    opt_json.current(0)
 opt_json.grid(column=1, row=2, padx=pad_grid, pady=pad_grid, sticky="news")
 
 
@@ -221,6 +226,12 @@ def redirector(inputStr):
     console_box.see("end")
 sys.stdout.write = redirector
 sys.stderr.write = redirector
+
+if not jar_version_list or not json_version_list:
+    extract_btn.state(['disabled'])
+    start_btn.state(['disabled'])
+    print('No Minecraft installation found in ' + minecraft_loaction() + '\n'
+          'Start Minecraft Java Edition at least once, then restart this program.')
 
 
 root.mainloop()
