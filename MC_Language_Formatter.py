@@ -202,8 +202,12 @@ console_box = tk.Text(innerFrame, height=10, width=50, padx=5, pady=5, font=('Tk
 console_box.grid(column=1, row=5, padx=pad_grid, pady=pad_grid, sticky="news")
 # tkinter widgets may only be used from the main thread, so prints are queued
 console_queue = queue.Queue()
-def redirector(inputStr):
-    console_queue.put(inputStr)
+class Redirector:
+    # replaces sys.stdout/stderr, which are None in a --windowed executable
+    def write(self, inputStr):
+        console_queue.put(inputStr)
+    def flush(self):
+        pass
 def poll_console():
     while not console_queue.empty():
         inputStr = console_queue.get()
@@ -214,8 +218,7 @@ def poll_console():
             console_box.insert("end", inputStr)
             console_box.see("end")
     root.after(50, poll_console)
-sys.stdout.write = redirector
-sys.stderr.write = redirector
+sys.stdout = sys.stderr = Redirector()
 poll_console()
 
 if not jar_version_list or not json_version_list:
