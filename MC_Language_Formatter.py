@@ -1,3 +1,4 @@
+import json
 import zipfile
 import os
 import sys
@@ -9,7 +10,7 @@ from tkinter.filedialog import askopenfile
 format_list = 'formatlist.txt'
 json_version = '1.16'
 jar_version = '1.16.2'
-end_line = '§r",'   # \xC2\xA7 = §
+reset = '§r'   # \xC2\xA7 = §
 
 appdata = os.environ.get('APPDATA', os.path.expanduser('~/AppData/Roaming'))
 current_directory = os.getcwd()
@@ -33,8 +34,6 @@ jar_version_list = [name for name in list_dir(jar_version_dir()) if os.path.isdi
 
 def extract_en_us_json():
     global jar_version
-    global current_directory
-    global output_folder
 
     jar_version = opt_jar.get()
 
@@ -42,102 +41,87 @@ def extract_en_us_json():
         os.makedirs(output_dir())
 
     with zipfile.ZipFile(jar_dir(), 'r') as zip_ref:
-        zip_ref.extract(en_us_json_dir, output_dir() + '/')
-    
-    if os.path.exists(output_dir() + '/en_us.json'):
-        os.remove(output_dir() + '/en_us.json')
-    os.rename(output_dir() + '/' + en_us_json_dir, output_dir() + '/en_us.json')
-    os.removedirs(output_dir() + '/' + en_us_json_dir[:-10])
+        en_us = zip_ref.read(en_us_json_dir)
+    with open(output_dir() + '/en_us.json', 'wb') as f:
+        f.write(en_us)
 
-    print('Extracted to /' + output_folder + '/' + en_us_json_dir)
+    print('Extracted to /' + output_folder + '/en_us.json')
+
+def unescape(text):
+    # format list values are written like JSON string contents (e.g. \" or \n)
+    try:
+        return json.loads('"' + text + '"')
+    except ValueError:
+        return text
+
+def read_format_list(path):
+    # returns {translation key: (text in front, text at back, replace)}
+    rules = {}
+    with open(path, 'r', encoding='utf8') as f:
+        for line in f.read().splitlines():
+            key, separator, rule = line.partition('": ')
+            key = key.strip()
+            rule = rule.lstrip()
+            if not separator or key.startswith(('/', '#')) or not rule.startswith('"'):   # ignore comments
+                continue
+            rule = rule[1:]
+            if '§*' not in rule and rule.endswith('"'):     # replace format
+                rules[key[1:]] = (unescape(rule[:-1]), '', True)
+            else:                                           # add format
+                front, _, back = rule.partition('§*')       #\xC2\xA7 = §
+                if back.endswith('"'):
+                    back = back[:-1]
+                rules[key[1:]] = (unescape(front), unescape(back), False)
+    return rules
 
 def start():
     global format_list
     global json_version
     global jar_version
-    global end_line
-
-    global current_directory
-    global output_folder
 
     format_list = browse_box.get(1.0,"end-1c")
     json_version = opt_json.get()
     jar_version = opt_jar.get()
-    
+
     print('Gathering hash directories...')
 
-    # special case for en_us.json
-    lang_code = ['en_us.json']
-    lang_dir = [output_dir() + '/' + en_us_json_dir]
+    # special case for en_us.json, it is only stored in the jar
+    with zipfile.ZipFile(jar_dir(), 'r') as zip_ref:
+        languages = {'en_us.json': json.loads(zip_ref.read(en_us_json_dir).decode('utf8'))}
+
+    # all other languages
+    with open(json_dir(), 'r', encoding='utf8') as f:
+        objects = json.load(f)['objects']
+    lang_hashes = {name.partition('minecraft/lang/')[2]: entry['hash']
+                   for name, entry in objects.items() if name.startswith('minecraft/lang/')}
+
+    print('Formatting language files...')
+
+    rules = read_format_list(format_list)
 
     if not os.path.exists(output_dir()):
         os.makedirs(output_dir())
 
-    with zipfile.ZipFile(jar_dir(), 'r') as zip_ref:
-        zip_ref.extract(en_us_json_dir, output_dir() + '/')
+    for lang_code in ['en_us.json'] + list(lang_hashes):
 
-    # all other languages
-    with open(json_dir(), 'r', encoding='utf8') as f:
-        json_contents = f.read()
-    json_contents_splited = json_contents.split(',')
+        print('Formatting ' + lang_code)
 
-    for line in json_contents_splited:
-        line = line.partition('minecraft/lang/')[2]
-        if line != '':
-            line = line.partition('": {"hash": "')
-            lang_code.append(line[0])
-            lang_hash = line[2][:-1]
-            lang_dir.append(hash_location() + '/' + lang_hash[0:2] + '/' + lang_hash)
-
-
-    print('Formatting language files...')
-
-    # generate list to help find all lines that have to get formated
-    with open(format_list, 'r', encoding='utf8') as f:
-        format_list_contents = f.read()
-    format_list_contents_splited = format_list_contents.split('\n')
-
-    find_to_format = []
-    format = []
-    for line in format_list_contents_splited:
-        if '": ' in line:
-            line = line.partition('": ')
-            if (line[0][0] != '/') & (line[0][0] != '#'):   # ignore comments
-                find_to_format.append(line[0] + line[1])
-                format.append(line[2].partition('§*'))      #\xC2\xA7 = §
-
-
-    # formatting language files
-    for lang_loop in range(len(lang_code)):
-
-        print('Formatting ' + lang_code[lang_loop])
-
-        with open(lang_dir[lang_loop], 'r', encoding='utf8') as f:
-            lang_dir_contents = f.read()
-        lang_dir_contents_splited = lang_dir_contents.split('\n')
-
-        # find all lines from current language that have to get changed
-        current_lang = [s for s in lang_dir_contents_splited if any(xs in s for xs in find_to_format)]
+        if lang_code in languages:
+            lang = languages[lang_code]
+        else:
+            lang_hash = lang_hashes[lang_code]
+            with open(hash_location() + '/' + lang_hash[0:2] + '/' + lang_hash, 'r', encoding='utf8') as f:
+                lang = json.load(f)
 
         # apply format to all languages from format list
-        apllied_format = ['{']
-        for i in range(len(find_to_format)):
-            line = [s for s in current_lang if find_to_format[i] in s]
-            if line != []:      #TODO: Option: use en_us if language is not complete (for testing use gv_im.json 1.16.2/1.16)(Does MC use custom en_us or default?)
-                line = line[0].partition('": ')
-                if (format[i][0][-1] == '"') & (format[i][0].count('"') > 1):   # replace format
-                    apllied_format.append( line[0] + line[1] + format[i][0][:-1] + end_line )
-                else:                                                           # add format
-                    apllied_format.append( line[0] + line[1] + format[i][0] + line[2].rstrip().rstrip(',')[1:-1] + format[i][2] + end_line )
-        # add { } and remove last ,
-        apllied_format[-1] = apllied_format[-1][:-1]
-        apllied_format.append('}')
+        applied_format = {}
+        for key, (front, back, replace) in rules.items():
+            if key in lang:      #TODO: Option: use en_us if language is not complete (for testing use gv_im.json 1.16.2/1.16)(Does MC use custom en_us or default?)
+                text = front if replace else front + lang[key] + back
+                applied_format[key] = text + reset
 
-        with open(output_folder + '/' + lang_code[lang_loop], 'w', encoding='utf8') as f:
-            f.write('\n'.join(apllied_format))
-
-    os.remove(output_dir() + '/' + en_us_json_dir)
-    os.removedirs(output_dir() + '/' + en_us_json_dir[:-10])
+        with open(output_dir() + '/' + lang_code, 'w', encoding='utf8') as f:
+            json.dump(applied_format, f, ensure_ascii=False, indent=2)
 
     print('Done! Files saved to /' + output_folder + '/')
 

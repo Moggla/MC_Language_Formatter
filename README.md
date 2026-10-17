@@ -24,14 +24,14 @@ Basically it turns this
 into this
 ```json
 {
-  "advMode.mode.auto":                    "-Replace-§r",
-  "advMode.mode.autoexec.bat":            "§fNew Name§r",
-  "advMode.mode.redstone":                "Add In Front -> Impulse§r",
-  "advMode.mode.redstoneTriggered":       "§4Needs Redstone§r",
-  "advMode.mode.sequence":                "Add In Front -> Chain <- Add At Back§r",
-  "advMode.mode.unconditional":           "---Unconditional---§r",
-  "entity.minecraft.villager":            "Villager <- Add At Back§r",
-  "entity.minecraft.villager.armorer":    "Armorer---§r"
+  "advMode.mode.auto": "-Replace-§r",
+  "advMode.mode.autoexec.bat": "§fNew Name§r",
+  "advMode.mode.redstone": "Add In Front -> Impulse§r",
+  "advMode.mode.redstoneTriggered": "§4Needs Redstone§r",
+  "advMode.mode.sequence": "Add In Front -> Chain <- Add At Back§r",
+  "advMode.mode.unconditional": "---Unconditional---§r",
+  "entity.minecraft.villager": "Villager <- Add At Back§r",
+  "entity.minecraft.villager.armorer": "Armorer---§r"
 }
 ```
 for all languages.
