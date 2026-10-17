@@ -11,11 +11,11 @@ json_version = '1.16'
 jar_version = '1.16.2'
 end_line = '§r",'   # \xC2\xA7 = §
 
-home = os.environ['HOMEPATH']
+appdata = os.environ.get('APPDATA', os.path.expanduser('~/AppData/Roaming'))
 current_directory = os.getcwd()
 output_folder = 'output'
 en_us_json_dir = 'assets/minecraft/lang/en_us.json'
-minecraft_loaction =    lambda: home + '/AppData/Roaming/.minecraft/'
+minecraft_loaction =    lambda: appdata + '/.minecraft/'
 hash_location =         lambda: minecraft_loaction() + 'assets/objects'
 json_version_dir =      lambda: minecraft_loaction() + 'assets/indexes/'
 json_dir =              lambda: json_version_dir() + json_version + '.json'
@@ -30,7 +30,6 @@ jar_version_list = [name for name in os.listdir(jar_version_dir()) if os.path.is
 
 def extract_en_us_json():
     global jar_version
-    global home
     global current_directory
     global output_folder
 
@@ -55,7 +54,6 @@ def start():
     global jar_version
     global end_line
 
-    global home
     global current_directory
     global output_folder
 
