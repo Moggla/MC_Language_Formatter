@@ -1,4 +1,7 @@
 import json
+import queue
+import threading
+import traceback
 import zipfile
 import os
 import sys
@@ -64,11 +67,7 @@ def read_format_list(path):
                 rules[key[1:]] = (unescape(front), unescape(back), False)
     return rules
 
-def start():
-    format_list_path = browse_box.get(1.0,"end-1c")
-    json_version = opt_json.get()
-    jar_version = opt_jar.get()
-
+def start(format_list_path, json_version, jar_version):
     print('Gathering hash directories...')
 
     # special case for en_us.json, it is only stored in the jar
@@ -179,8 +178,20 @@ browse_text.set("...")
 browse_btn.grid(column=1, row=3, padx=pad_grid, pady=pad_grid, sticky='E')
 
 
+def start_in_background():
+    # formatting runs in a separate thread so the window stays responsive
+    args = (browse_box.get(1.0,"end-1c"), opt_json.get(), opt_jar.get())
+    def work():
+        try:
+            start(*args)
+        except Exception:
+            traceback.print_exc()
+        console_queue.put(None)     # tell the GUI that formatting is done
+    extract_btn.state(['disabled'])
+    start_btn.state(['disabled'])
+    threading.Thread(target=work, daemon=True).start()
 start_text = tk.StringVar()
-start_btn = ttk.Button(innerFrame, textvariable=start_text, command=start)
+start_btn = ttk.Button(innerFrame, textvariable=start_text, command=start_in_background)
 start_text.set("Start Formatting all Languages")
 start_btn.grid(column=1, row=4, padx=pad_grid, pady=pad_grid)
 
@@ -189,12 +200,23 @@ text = ttk.Label(innerFrame, text="Console:")
 text.grid(column=0, row=5, padx=pad_grid, pady=pad_grid)
 console_box = tk.Text(innerFrame, height=10, width=50, padx=5, pady=5, font=('TkDefaultFont', 8))
 console_box.grid(column=1, row=5, padx=pad_grid, pady=pad_grid, sticky="news")
+# tkinter widgets may only be used from the main thread, so prints are queued
+console_queue = queue.Queue()
 def redirector(inputStr):
-    console_box.update_idletasks()
-    console_box.insert("end", inputStr)
-    console_box.see("end")
+    console_queue.put(inputStr)
+def poll_console():
+    while not console_queue.empty():
+        inputStr = console_queue.get()
+        if inputStr is None:
+            extract_btn.state(['!disabled'])
+            start_btn.state(['!disabled'])
+        else:
+            console_box.insert("end", inputStr)
+            console_box.see("end")
+    root.after(50, poll_console)
 sys.stdout.write = redirector
 sys.stderr.write = redirector
+poll_console()
 
 if not jar_version_list or not json_version_list:
     extract_btn.state(['disabled'])
